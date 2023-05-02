@@ -12,6 +12,9 @@ class NumberList implements Sortable {
   }
 
   sort(): void {
+     this.numbers = this.numbers.filter(
+       (n) => typeof n === "number" && !isNaN(n)
+     )
     this.numbers.sort((a, b) => b - a)
   }
 
