@@ -29,14 +29,24 @@ class FileNumberList extends NumberList {
   }
 
   read(): void {
-   const fileContent: string = fs.readFileSync(this.inpfilePath, "utf-8")
-   const numbers: number[] = fileContent.split(", ").map(Number)
-   this.numbers = numbers
+    try {
+      const fileContent: string = fs.readFileSync(this.inpfilePath, "utf-8")
+      const numbers: number[] = fileContent.split(", ").map(Number)
+      this.numbers = numbers
+    } catch (error) {
+      throw new Error(
+        `File ${this.inpfilePath} does not exist. Check your file path and try again. Make sure it is in the root directory`
+      )
+    }
   }
 
   write(): void {
-   const content: string = this.toString()
-   fs.writeFileSync(this.outpfilePath, content)
+    try {
+      const content: string = this.toString()
+      fs.writeFileSync(this.outpfilePath, content)
+    } catch (error) {
+      throw new Error(`Unable to write to ${this.outpfilePath}`)
+    }
   }
 }
 
