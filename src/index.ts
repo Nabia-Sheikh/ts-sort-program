@@ -1,35 +1,11 @@
 import fs from "fs"
 import readline from "readline"
-
-interface Sortable {
-  sort(): void
-}
-
-class NumberList implements Sortable {
-  numbers: number[]
-
-  constructor(numbers: number[]) {
-    this.numbers = numbers
-  }
-
-  sort(ascending: boolean = true, algo: string = "Quicksort"): void {
-    this.numbers = this.numbers.filter(
-      (n) => typeof n === "number" && !isNaN(n)
-    )
-
-    if (algo === "Quicksort") {
-      this.numbers.sort((a, b) => (ascending ? a - b : b - a))
-    } else if (algo === "Mergesort") {
-      this.numbers = mergeSort(this.numbers, ascending)
-    }
-  }
-
-  toString(): string {
-    return this.numbers.join(", ")
-  }
-}
+import { NumberList } from "../src/classes/NumberList"
+import Node from "../src/classes/LinkedListNode"
 
 class FileNumberList extends NumberList {
+  dataStructure: string = "Array"
+
   constructor(private inpfilePath: string, private outpfilePath: string) {
     super([])
   }
@@ -49,52 +25,31 @@ class FileNumberList extends NumberList {
   write(): void {
     try {
       const content: string = this.toString()
-      fs.writeFileSync(this.outpfilePath, content)
+      if (this.dataStructure === "Array") {
+        fs.writeFileSync(this.outpfilePath, content)
+      } else if (this.dataStructure === "LinkedList") {
+        const head = new Node(this.numbers[0])
+        let currentNode = head
+        for (let i = 1; i < this.numbers.length; i++) {
+          const newNode = new Node(this.numbers[i])
+          currentNode.next = newNode
+          currentNode = newNode
+        }
+        let current: Node | null = head
+        let str = ""
+        while (current !== null) {
+          str += current.data.toString()
+          current = current.next
+          if (current !== null) {
+            str += ", "
+          }
+        }
+        fs.writeFileSync(this.outpfilePath, str)
+      }
     } catch (error) {
       throw new Error(`Unable to write to ${this.outpfilePath}`)
     }
   }
-}
-
-function mergeSort(arr: number[], ascending: boolean = true): number[] {
-  if (arr.length <= 1) {
-    return arr
-  }
-
-  const middle = Math.floor(arr.length / 2)
-  const left = arr.slice(0, middle)
-  const right = arr.slice(middle)
-
-  return merge(
-    mergeSort(left, ascending),
-    mergeSort(right, ascending),
-    ascending
-  )
-}
-
-function merge(
-  left: number[],
-  right: number[],
-  ascending: boolean = true
-): number[] {
-  let result: number[] = []
-  let leftIndex = 0
-  let rightIndex = 0
-
-  while (leftIndex < left.length && rightIndex < right.length) {
-    if (
-      (ascending && left[leftIndex] < right[rightIndex]) ||
-      (!ascending && left[leftIndex] > right[rightIndex])
-    ) {
-      result.push(left[leftIndex])
-      leftIndex++
-    } else {
-      result.push(right[rightIndex])
-      rightIndex++
-    }
-  }
-
-  return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex))
 }
 
 function main(): void {
@@ -136,8 +91,10 @@ function main(): void {
 
             rl.question("Enter data structure (1/2): ", (dataStructure) => {
               if (dataStructure === "1") {
+                numberList.dataStructure = "Array"
                 console.log("Array selected.")
               } else if (dataStructure === "2") {
+                numberList.dataStructure = "LinkedList"
                 console.log("Linked list selected.")
               } else {
                 throw new Error(
